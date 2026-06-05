@@ -1,0 +1,7 @@
+{
+  "action": "tool.call",
+  "resource": "mcp://browser.open",
+  "qualifier": {
+    "origin": "local-demo"
+  }
+}

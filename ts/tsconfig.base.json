@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@grantz/core": ["packages/core/src/index.ts"],
+      "@grantz/revocation-convex": ["packages/revocation-convex/src/index.ts"],
+      "@grantz/signer-local": ["packages/signer-local/src/index.ts"],
+      "@grantz/revocation-local": ["packages/revocation-local/src/index.ts"],
+      "@grantz/revocation-postgres": ["packages/revocation-postgres/src/index.ts"],
+      "@dockbay/convex": ["../../dockbay/ts/packages/convex/src/index.ts"],
+      "@dockbay/core": ["../../dockbay/ts/packages/core/src/index.ts"],
+      "@dockbay/memory": ["../../dockbay/ts/packages/memory/src/index.ts"],
+      "@dockbay/postgres": ["../../dockbay/ts/packages/postgres/src/index.ts"]
+    },
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  }
+}
