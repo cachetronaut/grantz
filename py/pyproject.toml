@@ -2,9 +2,15 @@
 name = "grantz"
 version = "0.0.0"
 description = "Scoped, signed, monotonically attenuable delegation tokens."
+readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = ["cryptography>=42", "psycopg[binary]>=3.2", "psycopg-pool>=3.2"]
+
+[project.urls]
+Homepage = "https://github.com/cachetronaut/grantz"
+Repository = "https://github.com/cachetronaut/grantz"
+Issues = "https://github.com/cachetronaut/grantz/issues"
 
 [build-system]
 requires = ["hatchling"]
