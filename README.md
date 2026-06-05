@@ -1,5 +1,10 @@
 # Grantz
 
+<p align="center">
+  <img src="docs/assets/logo.png" alt="Grantz logo" width="240">
+</p>
+
+
 Scoped, signed, monotonically attenuable delegation tokens for headless agent and tool runs.
 
 Grantz is a primitive with TypeScript and Python implementations maintained in one public repository. The shared repo keeps the public contract, fixtures, issues, and release history aligned across languages.
