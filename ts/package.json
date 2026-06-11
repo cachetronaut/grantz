@@ -1,5 +1,5 @@
 {
-  "name": "grantz",
+  "name": "@cachetronaut/grantz",
   "version": "0.0.0",
   "description": "Scoped, signed, monotonically attenuable delegation tokens for headless agent and tool runs.",
   "keywords": [

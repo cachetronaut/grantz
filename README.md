@@ -1,3 +1,15 @@
+---
+status: active
+updated: 2026-06-11
+description: Public repository overview for Grantz.
+keywords:
+  - grantz
+  - delegation
+  - capability-tokens
+  - typescript
+  - python
+---
+
 # Grantz
 
 <p align="center">
@@ -11,7 +23,7 @@ Grantz is a primitive with TypeScript and Python implementations maintained in o
 
 ## Packages
 
-- npm: `grantz`
+- npm: `@cachetronaut/grantz`
 - PyPI: `grantz`
 
 ## Repository Layout
