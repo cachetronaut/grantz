@@ -1,3 +1,14 @@
+---
+status: active
+updated: 2026-06-11
+description: TypeScript package notes for Grantz.
+keywords:
+  - grantz
+  - typescript
+  - delegation
+  - capability-tokens
+---
+
 # grantz
 
 TypeScript implementation of Grantz.
@@ -7,7 +18,7 @@ For product-level context, shared contracts, and cross-language repository infor
 ## Install
 
 ```sh
-npm install grantz
+npm install @cachetronaut/grantz
 ```
 
 ## Development
