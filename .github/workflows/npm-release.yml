@@ -1,24 +1,37 @@
 name: npm release
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "ts/**"
       - ".github/workflows/npm-release.yml"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump to publish"
+        type: choice
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
-  contents: read
+  actions: write
+  contents: write
   id-token: write
+  pull-requests: write
+  statuses: write
 
 concurrency:
-  group: npm-release-${{ github.ref }}
+  group: npm-release-main
   cancel-in-progress: false
 
 jobs:
-  publish:
-    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip release]')
+  release:
+    if: "${{ github.event_name == 'workflow_dispatch' || (!startsWith(github.event.head_commit.message, 'chore: release v') && !contains(github.event.head_commit.message, '[skip release]')) }}"
     runs-on: ubuntu-latest
     environment: npm
     defaults:
@@ -26,35 +39,124 @@ jobs:
         working-directory: ts
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Checkout dockbay sibling
+        working-directory: .
+        run: git clone --depth 1 https://github.com/cachetronaut/dockbay.git ../dockbay
       - uses: pnpm/action-setup@v4
         with:
           version: 9.12.0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
           cache: pnpm
           cache-dependency-path: ts/pnpm-lock.yaml
+      - name: Install npm for Trusted Publishing
+        run: npm install -g npm@11.13.0
+      - name: Install dockbay TypeScript dependencies
+        working-directory: ../dockbay/ts
+        run: pnpm install --frozen-lockfile
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Verify
         run: pnpm verify
-      - name: Build
-        run: pnpm build
-      - name: Read package metadata
-        id: package
+      - name: Select version bump
+        id: bump
         run: |
-          echo "name=$(node -p \"require('./package.json').name\")" >> "$GITHUB_OUTPUT"
-          echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
-      - name: Check published version
-        id: published
-        run: |
-          if npm view "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}" version >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }} is already published"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ github.event.inputs.bump }}" >> "$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "value=patch" >> "$GITHUB_OUTPUT"
           fi
-      - name: Publish
-        if: steps.published.outputs.exists == 'false'
+      - name: Bump version
+        id: version
+        run: |
+          npm version "${{ steps.bump.outputs.value }}" --no-git-tag-version
+          VERSION="$(node -p "require('./package.json').version")"
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists." >&2
+            exit 1
+          fi
+          if npm view "@cachetronaut/grantz@${VERSION}" version >/dev/null 2>&1; then
+            echo "@cachetronaut/grantz@${VERSION} already exists on npm." >&2
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Build and verify packages
+        run: |
+          pnpm build
+          npm pack --dry-run
+          pnpm pack:workspaces
+      - name: Publish to npm
         run: npm publish --provenance --access public
+      - name: Create release pull request
+        id: release_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BRANCH: chore/release-${{ steps.version.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore: release ${{ steps.version.outputs.tag }}"
+          git switch -c "$RELEASE_BRANCH"
+          git push origin "$RELEASE_BRANCH"
+          PR_URL="$(gh pr create \
+            --base main \
+            --head "$RELEASE_BRANCH" \
+            --title "chore: release ${{ steps.version.outputs.tag }}" \
+            --body "Synchronizes repository metadata with @cachetronaut/grantz@${{ steps.version.outputs.version }} after publication.")"
+          echo "number=${PR_URL##*/}" >> "$GITHUB_OUTPUT"
+          echo "branch=${RELEASE_BRANCH}" >> "$GITHUB_OUTPUT"
+      - name: Verify release pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BRANCH: ${{ steps.release_pr.outputs.branch }}
+        run: |
+          gh workflow run ci.yml --ref "$RELEASE_BRANCH"
+          RUN_ID=""
+          for attempt in $(seq 1 30); do
+            RUN_ID="$(gh run list \
+              --workflow ci.yml \
+              --branch "$RELEASE_BRANCH" \
+              --event workflow_dispatch \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId // empty')"
+            if [ -n "$RUN_ID" ]; then
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "$RUN_ID" ]; then
+            echo "Release CI run did not start." >&2
+            exit 1
+          fi
+          gh run watch "$RUN_ID" --exit-status
+          RELEASE_SHA="$(git rev-parse HEAD)"
+          CI_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}"
+          for check_context in verify gitleaks; do
+            gh api --method POST \
+              "repos/${GITHUB_REPOSITORY}/statuses/${RELEASE_SHA}" \
+              -f state=success \
+              -f context="$check_context" \
+              -f description="Passed in release CI run ${RUN_ID}" \
+              -f target_url="$CI_URL" >/dev/null
+          done
+      - name: Merge release pull request and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.release_pr.outputs.number }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh pr merge "$PR_NUMBER" \
+            --squash \
+            --delete-branch \
+            --subject "chore: release ${RELEASE_TAG}" \
+            --body ""
+          git fetch origin main
+          MERGE_SHA="$(gh pr view "$PR_NUMBER" --json mergeCommit --jq '.mergeCommit.oid')"
+          git tag -a "$RELEASE_TAG" "$MERGE_SHA" -m "Release ${RELEASE_TAG}"
+          git push origin "$RELEASE_TAG"
