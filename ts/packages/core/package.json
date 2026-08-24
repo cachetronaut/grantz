@@ -1,13 +1,18 @@
 {
   "name": "@grantz/core",
   "version": "0.0.0",
-  "private": true,
   "description": "Internal: grant/token model, mint/verify/attenuate/authorize logic, and signer/verifier/revocation ports.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "lint": "biome lint .",

@@ -43,6 +43,10 @@ jobs:
         if: hashFiles('ts/package.json') != ''
         working-directory: ts
         run: npm pack --dry-run
+      - name: TypeScript workspace publish dry run
+        if: hashFiles('ts/package.json') != ''
+        working-directory: ts
+        run: pnpm pack:workspaces
       - uses: astral-sh/setup-uv@v5
         if: hashFiles('py/pyproject.toml') != ''
         with:
