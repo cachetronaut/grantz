@@ -9,6 +9,7 @@ export default defineConfig({
     'revocation-postgres': 'packages/revocation-postgres/src/index.ts',
   },
   format: 'esm',
+  noExternal: [/^@grantz\//],
   dts: true,
   splitting: true,
   clean: true,

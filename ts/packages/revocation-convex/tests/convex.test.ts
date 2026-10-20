@@ -1,5 +1,5 @@
+import { describeRevocationStore } from '@grantz/revocation-postgres/testing';
 import { InMemoryConvexOperationHost } from 'dockbay/convex';
-import { describeRevocationStore } from '../../revocation-postgres/tests/revocation-contract.js';
 import { ConvexRevocationStore, createRevocationOperations } from '../src/index.js';
 
 describeRevocationStore(

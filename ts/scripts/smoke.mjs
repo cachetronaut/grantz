@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { InMemoryConvexOperationHost } from 'dockbay/convex';
 import { createInMemoryDriver } from 'dockbay/memory';
 import { authorize, consume, GrantError, mint, revoke, verify } from '../dist/index.js';
@@ -10,6 +11,11 @@ import {
   Ed25519LocalVerifier,
   generateLocalKeyPair,
 } from '../dist/signer-local.js';
+
+const adapterRequire = createRequire(
+  new URL('../packages/revocation-postgres/package.json', import.meta.url),
+);
+assert.doesNotThrow(() => adapterRequire.resolve('@grantz/core'));
 
 const key = generateLocalKeyPair('smoke');
 const signer = new Ed25519LocalSigner(key);

@@ -20,6 +20,11 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "@grantz/revocation-local": "workspace:*",
+    "dockbay": "0.0.0"
+  },
+  "dependencies": {
+    "@grantz/core": "workspace:*"
   }
 }

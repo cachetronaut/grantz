@@ -1,8 +1,8 @@
 import type { Jti, PrincipalId, RevocationStore } from '@grantz/core';
+import { isStateRevoked, revokeState } from '@grantz/core';
 import type { StoreDriver, Transaction } from 'dockbay';
 import { createPostgresDriver, type PostgresStoreDriver } from 'dockbay/postgres';
 import type { Pool } from 'pg';
-import { isStateRevoked, revokeState } from '../../core/src/state.js';
 
 const REVOKED_JTIS = 'revoked_jtis';
 const SUBJECT_EPOCHS = 'subject_epochs';

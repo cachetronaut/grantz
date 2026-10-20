@@ -20,9 +20,11 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "@grantz/revocation-postgres": "workspace:*"
   },
   "dependencies": {
-    "dockbay": "0.0.0"
+    "dockbay": "0.0.0",
+    "@grantz/core": "workspace:*"
   }
 }

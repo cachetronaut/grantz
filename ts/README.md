@@ -105,6 +105,10 @@ await store.transaction(async (transaction) => {
 
 `createRevocationOperations` and the in-memory Convex operation host retain their existing process-local behavior. A durable Convex revocation adapter requires persistent server operations supplied through its operation driver. The Convex operation driver is not a dockbay `Transaction`; use a transaction-capable driver for single-use state.
 
+Adapter authors can import `isStateRevoked(id, store)` and `revokeState(id, store)` from `@grantz/core` to read and write grant-state tombstones without forwarding to another revocation adapter. Packages that import core declare it as a workspace dependency.
+
+The workspace package `@grantz/revocation-postgres/testing` exports `describeRevocationStore` for the shared revocation contract tests. It requires Vitest 2, declared as an optional peer dependency. Packages using this helper declare `@grantz/revocation-postgres` as a development dependency.
+
 ## Ids and validity
 
 Minting and attenuation use `globalThis.crypto.randomUUID()` unless `options.id` is supplied explicitly. Explicit ids must be unique in the store.

@@ -14,6 +14,9 @@ export default defineConfig({
       '@grantz/revocation-local': fileURLToPath(
         new URL('packages/revocation-local/src/index.ts', import.meta.url),
       ),
+      '@grantz/revocation-postgres/testing': fileURLToPath(
+        new URL('packages/revocation-postgres/tests/revocation-contract.ts', import.meta.url),
+      ),
       '@grantz/revocation-postgres': fileURLToPath(
         new URL('packages/revocation-postgres/src/index.ts', import.meta.url),
       ),

@@ -4,6 +4,7 @@ export { attenuate, authorize, consume, mint, revoke, verify } from './core.js';
 export { AttenuationError, GrantError } from './errors.js';
 export { covers } from './scope.js';
 export type { GrantStore, GrantTransaction } from './state.js';
+export { isStateRevoked, revokeState } from './state.js';
 export type {
   AuthorizationDecision,
   AuthorizationFailureCode,
