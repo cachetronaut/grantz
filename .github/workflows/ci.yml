@@ -13,8 +13,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Checkout dockbay sibling
-        run: git clone --depth 1 https://github.com/cachetronaut/dockbay.git ../dockbay
       - uses: pnpm/action-setup@v4
         if: hashFiles('ts/package.json') != ''
         with:
@@ -25,9 +23,6 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: ts/pnpm-lock.yaml
-      - name: Install dockbay TypeScript dependencies
-        working-directory: ../dockbay/ts
-        run: pnpm install --frozen-lockfile
       - name: Install TypeScript dependencies
         if: hashFiles('ts/package.json') != ''
         working-directory: ts

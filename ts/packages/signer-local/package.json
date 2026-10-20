@@ -22,7 +22,7 @@
   "devDependencies": {
     "vitest": "^2.1.8",
     "@grantz/revocation-local": "workspace:*",
-    "dockbay": "0.0.0"
+    "dockbay": "^0.0.1"
   },
   "dependencies": {
     "@grantz/core": "workspace:*"

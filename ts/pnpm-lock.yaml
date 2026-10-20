@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       dockbay:
-        specifier: 0.0.0
-        version: 0.0.0
+        specifier: ^0.0.1
+        version: 0.0.1
       pg:
         specifier: ^8.16.3
         version: 8.21.0
@@ -37,8 +37,8 @@ importers:
   packages/core:
     dependencies:
       dockbay:
-        specifier: 0.0.0
-        version: 0.0.0
+        specifier: ^0.0.1
+        version: 0.0.1
     devDependencies:
       vitest:
         specifier: ^2.1.8
@@ -50,8 +50,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       dockbay:
-        specifier: 0.0.0
-        version: 0.0.0
+        specifier: ^0.0.1
+        version: 0.0.1
     devDependencies:
       '@grantz/revocation-postgres':
         specifier: workspace:*
@@ -76,8 +76,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       dockbay:
-        specifier: 0.0.0
-        version: 0.0.0
+        specifier: ^0.0.1
+        version: 0.0.1
       pg:
         specifier: ^8.16.3
         version: 8.21.0
@@ -99,8 +99,8 @@ importers:
         specifier: workspace:*
         version: link:../revocation-local
       dockbay:
-        specifier: 0.0.0
-        version: 0.0.0
+        specifier: ^0.0.1
+        version: 0.0.1
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@edge-runtime/vm@4.0.4)(@types/node@22.19.19)
@@ -696,8 +696,8 @@ packages:
     resolution: {integrity: sha512-h5k/5U50IJJFpzfL6nO9jaaumfjO/f2NjK/oYB2Djzm4p9L+3T9qWpZqZ2hAbLPuuYq9wrU08WQyBTL5GbPk5Q==}
     engines: {node: '>=6'}
 
-  dockbay@0.0.0:
-    resolution: {integrity: sha512-UauSbW1iUp9iPL90Fzcxo75IYS5OYBZTFLrTSMbHyvFf7WBdwRw5J+ZBH8wuPOM+AAPfpmc5QTruJjZObiw7oA==}
+  dockbay@0.0.1:
+    resolution: {integrity: sha512-Ft3EZ/efiPgVUyAYJDQ2fdXzZ6P0wt0qE3lXFVoutweF2gyMkKAkACJJR/CbRer5ybZIt0YNb6WPGq7fkHVUdg==}
     engines: {node: '>=24.0.0', pnpm: '>=9.0.0'}
 
   es-module-lexer@1.7.0:
@@ -1419,7 +1419,7 @@ snapshots:
 
   deep-eql@5.0.2: {}
 
-  dockbay@0.0.0:
+  dockbay@0.0.1:
     dependencies:
       pg: 8.21.0
     transitivePeerDependencies:
