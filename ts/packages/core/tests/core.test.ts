@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { createInMemoryDriver } from 'dockbay/memory';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { Grant, Scope, Signer, Verifier } from '../src/index';
 import {
   AttenuationError,
@@ -12,6 +13,11 @@ import {
   mint,
   verify,
 } from '../src/index';
+
+let store = createInMemoryDriver();
+beforeEach(() => {
+  store = createInMemoryDriver();
+});
 
 const NOW = '2026-06-04T12:00:00.000Z';
 const LATER = '2026-06-04T12:05:00.000Z';
@@ -90,8 +96,12 @@ describe('scope coverage', () => {
 
 describe('attenuation', () => {
   it('mints and verifies a root grant', async () => {
-    const token = await mint(rootGrant(), new JsonSigner(), { now: NOW, id: 'jti_root' });
-    const verified = await verify(token, new JsonVerifier(), { now: LATER, audience: 'gateway' });
+    const token = await mint(rootGrant(), new JsonSigner(), { store, now: NOW, id: 'jti_root' });
+    const verified = await verify(token, new JsonVerifier(), {
+      store,
+      now: LATER,
+      audience: 'gateway',
+    });
 
     expect(verified.ok).toBe(true);
     if (verified.ok) {
@@ -103,7 +113,7 @@ describe('attenuation', () => {
   it('allows narrower child scopes and tighter numeric constraints', async () => {
     const signer = new JsonSigner();
     const verifier = new JsonVerifier();
-    const parent = await mint(rootGrant(), signer, { now: NOW, id: 'jti_root' });
+    const parent = await mint(rootGrant(), signer, { store, now: NOW, id: 'jti_root' });
     const child = await attenuate(
       parent,
       {
@@ -113,9 +123,9 @@ describe('attenuation', () => {
       },
       signer,
       verifier,
-      { now: LATER, id: 'jti_child' },
+      { store, now: LATER, id: 'jti_child' },
     );
-    const verified = await verify(child, verifier, { now: LATER });
+    const verified = await verify(child, verifier, { store, now: LATER });
 
     expect(verified.ok).toBe(true);
     if (verified.ok) {
@@ -128,7 +138,7 @@ describe('attenuation', () => {
   it('rejects child scopes that widen authority', async () => {
     const signer = new JsonSigner();
     const verifier = new JsonVerifier();
-    const parent = await mint(rootGrant(), signer, { now: NOW, id: 'jti_root' });
+    const parent = await mint(rootGrant(), signer, { store, now: NOW, id: 'jti_root' });
 
     await expect(
       attenuate(
@@ -136,7 +146,7 @@ describe('attenuation', () => {
         { scopes: [{ action: 'tool.call', resource: 'filesystem.*' }] },
         signer,
         verifier,
-        { now: LATER },
+        { store, now: LATER },
       ),
     ).rejects.toBeInstanceOf(AttenuationError);
   });
@@ -144,10 +154,11 @@ describe('attenuation', () => {
   it('rejects child expiry that outlives the parent', async () => {
     const signer = new JsonSigner();
     const verifier = new JsonVerifier();
-    const parent = await mint(rootGrant(), signer, { now: NOW, id: 'jti_root' });
+    const parent = await mint(rootGrant(), signer, { store, now: NOW, id: 'jti_root' });
 
     await expect(
       attenuate(parent, { expiresAt: '2026-06-04T14:00:00.000Z' }, signer, verifier, {
+        store,
         now: LATER,
       }),
     ).rejects.toBeInstanceOf(AttenuationError);
@@ -156,35 +167,45 @@ describe('attenuation', () => {
 
 describe('authorization', () => {
   it('authorizes a covered scope with matching binding and returns constraints', async () => {
-    const token = await mint(rootGrant(), new JsonSigner(), { now: NOW, id: 'jti_root' });
-    const verified = await verify(token, new JsonVerifier(), { now: LATER });
+    const token = await mint(rootGrant(), new JsonSigner(), { store, now: NOW, id: 'jti_root' });
+    const verified = await verify(token, new JsonVerifier(), { store, now: LATER });
     expect(verified.ok).toBe(true);
     if (!verified.ok) {
       return;
     }
 
     expect(
-      authorize(verified.claims, {
-        scope: { action: 'tool.call', resource: 'mcp://browser.open' },
-        context: { runId: 'run_demo_01' },
-      }),
+      await authorize(
+        verified.claims,
+        {
+          principal: verified.claims.subject,
+          scope: { action: 'tool.call', resource: 'mcp://browser.open' },
+          context: { runId: 'run_demo_01' },
+        },
+        { store, now: LATER },
+      ),
     ).toEqual({ ok: true, constraints: { max_spend_usd: 2, pii_export: false } });
   });
 
   it('rejects a covered scope with the wrong binding', async () => {
-    const token = await mint(rootGrant(), new JsonSigner(), { now: NOW, id: 'jti_root' });
-    const verified = await verify(token, new JsonVerifier(), { now: LATER });
+    const token = await mint(rootGrant(), new JsonSigner(), { store, now: NOW, id: 'jti_root' });
+    const verified = await verify(token, new JsonVerifier(), { store, now: LATER });
     expect(verified.ok).toBe(true);
     if (!verified.ok) {
       return;
     }
 
     expect(
-      authorize(verified.claims, {
-        scope: { action: 'tool.call', resource: 'mcp://browser.open' },
-        context: { runId: 'run_other' },
-      }),
-    ).toEqual({ ok: false, reason: 'binding' });
+      await authorize(
+        verified.claims,
+        {
+          principal: verified.claims.subject,
+          scope: { action: 'tool.call', resource: 'mcp://browser.open' },
+          context: { runId: 'run_other' },
+        },
+        { store, now: LATER },
+      ),
+    ).toMatchObject({ ok: false, reason: 'binding' });
   });
 });
 

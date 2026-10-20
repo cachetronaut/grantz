@@ -1,9 +1,5 @@
 import type { Jti, PrincipalId, RevocationStore } from '@grantz/core';
-import type {
-  ConvexOperationDriver,
-  ConvexStoreOperation,
-  JsonValue,
-} from '../../../../../dockbay/ts/packages/convex/src/index.js';
+import type { ConvexOperationDriver, ConvexStoreOperation, JsonValue } from 'dockbay/convex';
 
 const REVOKE_JTI = 'revocation.revokeJti';
 const REVOKE_SUBJECT = 'revocation.revokeSubject';

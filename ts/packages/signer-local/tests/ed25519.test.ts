@@ -1,7 +1,13 @@
 import { mint, verify } from '@grantz/core';
 import { InMemoryRevocationStore } from '@grantz/revocation-local';
-import { describe, expect, it } from 'vitest';
+import { createInMemoryDriver } from 'dockbay/memory';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { Ed25519LocalSigner, Ed25519LocalVerifier, generateLocalKeyPair } from '../src/index';
+
+let store = createInMemoryDriver();
+beforeEach(() => {
+  store = createInMemoryDriver();
+});
 
 const NOW = '2026-06-04T12:00:00.000Z';
 const LATER = '2026-06-04T12:05:00.000Z';
@@ -21,11 +27,11 @@ describe('Ed25519LocalSigner', () => {
         expiresAt: '2026-06-04T13:00:00.000Z',
       },
       signer,
-      { now: NOW, id: 'jti_signed' },
+      { store, now: NOW, id: 'jti_signed' },
     );
 
     expect(token.split('.')).toHaveLength(3);
-    const verified = await verify(token, verifier, { now: LATER, audience: 'gateway' });
+    const verified = await verify(token, verifier, { store, now: LATER, audience: 'gateway' });
     expect(verified.ok).toBe(true);
     if (verified.ok) {
       expect(verified.keyId).toBe('test-key');
@@ -45,12 +51,12 @@ describe('Ed25519LocalSigner', () => {
         expiresAt: '2026-06-04T13:00:00.000Z',
       },
       signer,
-      { now: NOW, id: 'jti_signed' },
+      { store, now: NOW, id: 'jti_signed' },
     );
 
     const parts = token.split('.');
     const tampered = `${parts[0]}.${parts[1]}.x${parts[2]}`;
-    await expect(verify(tampered, verifier, { now: LATER })).resolves.toMatchObject({
+    await expect(verify(tampered, verifier, { store, now: LATER })).resolves.toMatchObject({
       ok: false,
       code: 'bad_sig',
     });
@@ -70,25 +76,27 @@ describe('Ed25519LocalSigner', () => {
         expiresAt: '2026-06-04T13:00:00.000Z',
       },
       signer,
-      { now: NOW, id: 'jti_signed' },
+      { store, now: NOW, id: 'jti_signed' },
     );
 
-    await expect(verify(token, verifier, { now: LATER, audience: 'other' })).resolves.toMatchObject(
-      {
-        ok: false,
-        code: 'wrong_audience',
-      },
-    );
     await expect(
-      verify(token, verifier, { now: '2026-06-04T13:00:00.000Z' }),
+      verify(token, verifier, { store, now: LATER, audience: 'other' }),
+    ).resolves.toMatchObject({
+      ok: false,
+      code: 'wrong_audience',
+    });
+    await expect(
+      verify(token, verifier, { store, now: '2026-06-04T13:00:00.000Z' }),
     ).resolves.toMatchObject({
       ok: false,
       code: 'expired',
     });
     await revocation.revoke('jti_signed');
-    await expect(verify(token, verifier, { now: LATER, revocation })).resolves.toMatchObject({
-      ok: false,
-      code: 'revoked',
-    });
+    await expect(verify(token, verifier, { store, now: LATER, revocation })).resolves.toMatchObject(
+      {
+        ok: false,
+        code: 'revoked',
+      },
+    );
   });
 });
