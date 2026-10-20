@@ -17,18 +17,6 @@ export default defineConfig({
       '@grantz/revocation-postgres': fileURLToPath(
         new URL('packages/revocation-postgres/src/index.ts', import.meta.url),
       ),
-      '@dockbay/convex': fileURLToPath(
-        new URL('../../dockbay/ts/packages/convex/src/index.ts', import.meta.url),
-      ),
-      '@dockbay/core': fileURLToPath(
-        new URL('../../dockbay/ts/packages/core/src/index.ts', import.meta.url),
-      ),
-      '@dockbay/memory': fileURLToPath(
-        new URL('../../dockbay/ts/packages/memory/src/index.ts', import.meta.url),
-      ),
-      '@dockbay/postgres': fileURLToPath(
-        new URL('../../dockbay/ts/packages/postgres/src/index.ts', import.meta.url),
-      ),
     },
   },
 });

@@ -10,11 +10,7 @@
       "@grantz/revocation-convex": ["packages/revocation-convex/src/index.ts"],
       "@grantz/signer-local": ["packages/signer-local/src/index.ts"],
       "@grantz/revocation-local": ["packages/revocation-local/src/index.ts"],
-      "@grantz/revocation-postgres": ["packages/revocation-postgres/src/index.ts"],
-      "@dockbay/convex": ["../../dockbay/ts/packages/convex/src/index.ts"],
-      "@dockbay/core": ["../../dockbay/ts/packages/core/src/index.ts"],
-      "@dockbay/memory": ["../../dockbay/ts/packages/memory/src/index.ts"],
-      "@dockbay/postgres": ["../../dockbay/ts/packages/postgres/src/index.ts"]
+      "@grantz/revocation-postgres": ["packages/revocation-postgres/src/index.ts"]
     },
     "strict": true,
     "noUncheckedIndexedAccess": true,

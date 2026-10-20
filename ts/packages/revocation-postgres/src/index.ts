@@ -1,10 +1,8 @@
 import type { Jti, PrincipalId, RevocationStore } from '@grantz/core';
+import type { StoreDriver, Transaction } from 'dockbay';
+import { createPostgresDriver, type PostgresStoreDriver } from 'dockbay/postgres';
 import type { Pool } from 'pg';
-import type { StoreDriver } from '../../../../../dockbay/ts/packages/core/src/index.js';
-import {
-  createPostgresDriver,
-  type PostgresStoreDriver,
-} from '../../../../../dockbay/ts/packages/postgres/src/index.js';
+import { isStateRevoked, revokeState } from '../../core/src/state.js';
 
 const REVOKED_JTIS = 'revoked_jtis';
 const SUBJECT_EPOCHS = 'subject_epochs';
@@ -14,11 +12,18 @@ export interface PostgresRevocationStoreOptions {
 }
 
 export class DriverRevocationStore implements RevocationStore {
-  constructor(private readonly driver: StoreDriver) {}
+  constructor(private readonly driver: StoreDriver | Transaction) {}
+
+  withTransaction(transaction: Transaction): DriverRevocationStore {
+    return new DriverRevocationStore(transaction);
+  }
 
   async isRevoked(jti: Jti, subject?: PrincipalId, issuedAt?: string): Promise<boolean> {
-    return this.driver.transaction(async (txn) => {
-      if ((await txn.get(REVOKED_JTIS, { jti })) !== undefined) {
+    return this.transaction(async (txn) => {
+      if (
+        (await isStateRevoked(jti, txn)) ||
+        (await txn.get(REVOKED_JTIS, { jti })) !== undefined
+      ) {
         return true;
       }
       if (subject === undefined || issuedAt === undefined) {
@@ -33,17 +38,26 @@ export class DriverRevocationStore implements RevocationStore {
   }
 
   async revoke(jti: Jti): Promise<void> {
-    await this.driver.transaction((txn) => txn.upsert(REVOKED_JTIS, { jti }, { jti }));
+    await this.transaction(async (txn) => {
+      await revokeState(jti, txn);
+      await txn.upsert(REVOKED_JTIS, { jti }, { jti });
+    });
   }
 
   async revokeSubject(subject: PrincipalId, revokedAt: string): Promise<void> {
-    await this.driver.transaction((txn) =>
+    await this.transaction((txn) =>
       txn.upsert(SUBJECT_EPOCHS, { subject }, { subject, revokedAt }),
     );
   }
 
   async close(): Promise<void> {
-    await this.driver.close();
+    if ('close' in this.driver) {
+      await this.driver.close();
+    }
+  }
+
+  private transaction<T>(work: (transaction: Transaction) => Promise<T>): Promise<T> {
+    return 'transaction' in this.driver ? this.driver.transaction(work) : work(this.driver);
   }
 }
 
