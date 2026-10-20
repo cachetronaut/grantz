@@ -24,7 +24,7 @@
     "@grantz/revocation-postgres": "workspace:*"
   },
   "dependencies": {
-    "dockbay": "0.0.0",
+    "dockbay": "^0.0.1",
     "@grantz/core": "workspace:*"
   }
 }

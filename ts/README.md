@@ -56,7 +56,7 @@ Failures from `verify` remain discriminated results with `ok: false`, `code`, an
 
 Without `store`, the module keeps issued, consumed, and revoked records in memory. This default lasts for the process lifetime. Supply the same durable store to every operation to retain state across restarts and share it across processes. Retain the signing and verification keys separately.
 
-`store` accepts a dockbay `StoreDriver` or `Transaction`. Grantz uses the published `dockbay@0.0.0` contracts through type imports and requires atomic `compareAndApply`. A driver opens a transaction for each state operation. A transaction can be supplied directly while it is active.
+`store` accepts a dockbay `StoreDriver` or `Transaction`. Grantz uses the published `dockbay@^0.0.1` contracts through type imports and requires atomic `compareAndApply`. A driver opens a transaction for each state operation. A transaction can be supplied directly while it is active.
 
 ```ts
 import { Pool } from 'pg';
